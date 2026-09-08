@@ -1,5 +1,6 @@
 pub mod errors;
 pub mod models;
+pub mod url;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;
