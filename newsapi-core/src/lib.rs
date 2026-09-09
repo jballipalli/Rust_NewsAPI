@@ -1,6 +1,6 @@
 pub mod errors;
 pub mod models;
-pub mod url;
+pub mod parser;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;
