@@ -1,33 +1,186 @@
-use url::{ParseError, Url};
+use crate::NewsApiError;
+use core::fmt;
+use std::collections::HashMap;
+use url::Url;
 
 static BASE_URL: &str = "https://newsapi.org/v2/";
 
-pub struct NewsApiClient {
+struct Everything;
+struct TopHeadlines;
+
+pub struct NewsApiClient<State> {
     api_key: String,
 
     url: Url,
+
+    parameters: HashMap<String, String>,
+
+    state: std::marker::PhantomData<State>,
 }
 
-impl NewsApiClient {
-    pub fn everything(api_key: String) -> Result<Self, ParseError> {
-        let base = Url::parse(BASE_URL).unwrap();
-        let url = base.join("everything")?;
+pub trait Methods {
+    fn get_url(&self) -> &str
+    where
+        Self: Sized;
 
-        Ok(Self { api_key, url })
+    fn get_parameters(&self) -> &HashMap<String, String>
+    where
+        Self: Sized;
+
+    fn show_api_key(&self) -> &str
+    where
+        Self: Sized;
+
+    fn page_size(self, size: u8) -> Result<Self, NewsApiError>
+    where
+        Self: Sized;
+
+    fn page(self, page: usize) -> Self
+    where
+        Self: Sized;
+
+    fn q(self, q: String) -> Result<Self, NewsApiError>
+    where
+        Self: Sized;
+
+    fn sources(self, source: Vec<String>) -> Result<Self, NewsApiError>
+    where
+        Self: Sized;
+}
+
+impl<State> fmt::Display for NewsApiClient<State> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "url: {}", self.get_url())?;
+        writeln!(f, "parameters: {:#?}", self.get_parameters())?;
+        Ok(())
+    }
+}
+
+impl<State> Methods for NewsApiClient<State> {
+    fn get_url(&self) -> &str {
+        &self.url.as_str()
     }
 
-    pub fn top_headlines(api_key: String) -> Result<Self, ParseError> {
-        let base = Url::parse(BASE_URL)?;
-        let url = base.join("top-headlines")?;
-
-        Ok(Self { api_key, url })
+    fn get_parameters(&self) -> &HashMap<String, String> {
+        &self.parameters
     }
 
-    pub fn show_url(&self) -> &Url {
-        &self.url
-    }
-
-    pub fn show_api_key(&self) -> &str {
+    fn show_api_key(&self) -> &str {
         &self.api_key
+    }
+
+    /// # Arguments
+    /// size: u8
+    ///
+    /// # Description
+    /// inserts pageSize into the ```self.parameters``` hashmap.
+    ///
+    /// As per newsapi.org documentation, number of results to return per page (request). 20 is the default, 100 is the maximum.
+    ///
+    /// # Error
+    /// Raise NewsApiError::ParamError, when size is out of bounds.
+    ///
+    fn page_size(mut self, size: u8) -> Result<Self, NewsApiError> {
+        match (1..=100).contains(&size) {
+            true => {
+                self.parameters
+                    .insert("pageSize".to_string(), size.to_string());
+                Ok(self)
+            }
+            false => Err(NewsApiError::ParamError {
+                param: "pageSize".to_string(),
+                message: "range out of bound. size must be within 1 and 100".to_string(),
+            }),
+        }
+    }
+
+    /// # Arguments
+    /// page: usize
+    ///
+    /// # Description
+    /// Inserts the page number into the `self.parameters` hashmap.
+    ///
+    /// This selects which page of results to return. The page number is
+    /// included in the request as the `page` query parameter. Use this to page through the results if the total results found is greater than the page size.
+    ///
+    fn page(mut self, page: usize) -> Self {
+        self.parameters.insert("page".to_string(), page.to_string());
+        self
+    }
+
+    /// # Arguments
+    /// q : String
+    ///
+    /// # Description
+    /// expect `q` to be a valid URL-encoded string.
+    /// This function does not check the string URL encoded validation.
+    ///
+    /// # Error
+    /// Raise NewsApiError::ParamError as q is limited to 500 chars
+    fn q(mut self, q: String) -> Result<Self, NewsApiError> {
+        match q.len() < 501 {
+            true => {
+                self.parameters.insert("q".to_string(), q.to_string());
+                Ok(self)
+            }
+            false => Err(NewsApiError::ParamError {
+                param: "q".to_string(),
+                message: "length exceeds 500 char limit".to_string(),
+            }),
+        }
+    }
+
+    /// # Arguments
+    /// source : Vec<String>
+    ///
+    /// # Description
+    /// This function adds sources query to the url.
+    /// Expects to provide valid source id's in a Vec<String>. max length is 20.
+    ///
+    /// # Error
+    /// Raises `NewsApiError::ParamError` if length of the vector is greater than 20.
+    fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError> {
+        match source.len() < 21 {
+            true => {
+                self.parameters
+                    .insert("sources".to_string(), source.join(","));
+                Ok(self)
+            }
+            false => Err(NewsApiError::ParamError {
+                param: "sources".to_string(),
+                message: "cannot provide more than 20 source ids.".to_string(),
+            }),
+        }
+    }
+}
+
+impl NewsApiClient<Everything> {
+    pub fn everything(api_key: String) -> Self {
+        let base = Url::parse(BASE_URL).unwrap();
+        let url = base.join("everything").unwrap();
+        let parameters: HashMap<String, String> = HashMap::new();
+
+        Self {
+            api_key,
+            url,
+            parameters,
+            state: std::marker::PhantomData::<Everything>,
+        }
+    }
+}
+
+impl NewsApiClient<TopHeadlines> {
+    pub fn top_headlines(api_key: String) -> Self {
+        let base = Url::parse(BASE_URL).unwrap();
+        let url = base.join("top-headlines").unwrap();
+
+        let parameters: HashMap<String, String> = HashMap::new();
+
+        Self {
+            api_key,
+            url,
+            parameters,
+            state: std::marker::PhantomData::<TopHeadlines>,
+        }
     }
 }

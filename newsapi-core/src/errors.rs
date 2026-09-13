@@ -17,4 +17,7 @@ pub enum NewsApiError {
 
     #[error("API_KEY variable not found")]
     APIKeyNotFound(VarError),
+
+    #[error("Parameter '{param}' error: {message}")]
+    ParamError { param: String, message: String },
 }

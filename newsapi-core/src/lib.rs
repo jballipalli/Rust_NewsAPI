@@ -4,6 +4,7 @@ pub mod parser;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;
+pub use parser::NewsApiClient;
 
 use ureq;
 
