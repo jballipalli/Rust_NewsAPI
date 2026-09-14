@@ -1,4 +1,6 @@
 use crate::NewsApiError;
+use crate::options;
+use crate::{Category, Country};
 use core::fmt;
 use std::collections::HashMap;
 use url::Url;
@@ -78,7 +80,7 @@ impl<State> Methods for NewsApiClient<State> {
     /// As per newsapi.org documentation, number of results to return per page (request). 20 is the default, 100 is the maximum.
     ///
     /// # Error
-    /// Raise NewsApiError::ParamError, when size is out of bounds.
+    /// Raise `NewsApiError::ParamError`, when size is out of bounds.
     ///
     fn page_size(mut self, size: u8) -> Result<Self, NewsApiError> {
         match (1..=100).contains(&size) {
@@ -116,7 +118,7 @@ impl<State> Methods for NewsApiClient<State> {
     /// This function does not check the string URL encoded validation.
     ///
     /// # Error
-    /// Raise NewsApiError::ParamError as q is limited to 500 chars
+    /// Raise `NewsApiError::ParamError`, as q is limited to 500 chars
     fn q(mut self, q: String) -> Result<Self, NewsApiError> {
         match q.len() < 501 {
             true => {
@@ -138,7 +140,7 @@ impl<State> Methods for NewsApiClient<State> {
     /// Expects to provide valid source id's in a Vec<String>. max length is 20.
     ///
     /// # Error
-    /// Raises `NewsApiError::ParamError` if length of the vector is greater than 20.
+    /// Raises `NewsApiError::ParamError`, if length of the vector is greater than 20.
     fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError> {
         match source.len() < 21 {
             true => {
@@ -182,5 +184,19 @@ impl NewsApiClient<TopHeadlines> {
             parameters,
             state: std::marker::PhantomData::<TopHeadlines>,
         }
+    }
+
+    pub fn category(mut self, category: Category) -> Self {
+        self.parameters
+            .insert("category".into(), format!("{category:?}").to_lowercase());
+        self
+    }
+
+    pub fn country(mut self, country: Country) -> Self {
+        self.parameters.insert(
+            "country".to_string(),
+            options::COUNTRY_LOOKUP[country].to_string(),
+        );
+        self
     }
 }

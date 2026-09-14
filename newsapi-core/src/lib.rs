@@ -1,9 +1,11 @@
 pub mod errors;
 pub mod models;
+pub mod options;
 pub mod parser;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;
+pub use options::{Category, Country};
 pub use parser::NewsApiClient;
 
 use ureq;
