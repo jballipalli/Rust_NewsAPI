@@ -10,6 +10,8 @@ static BASE_URL: &str = "https://newsapi.org/v2/";
 struct Everything;
 struct TopHeadlines;
 
+struct Sources;
+
 pub struct NewsApiClient<State> {
     api_key: String,
 
@@ -20,12 +22,24 @@ pub struct NewsApiClient<State> {
     state: std::marker::PhantomData<State>,
 }
 
-pub trait Methods {
+impl<State> fmt::Display for NewsApiClient<State> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "url: {}", self.get_url())?;
+        writeln!(f, "parameters: {:#?}", self.get_parameters())?;
+        Ok(())
+    }
+}
+
+pub trait CommonMethods {
     fn get_url(&self) -> &str
     where
         Self: Sized;
 
     fn get_parameters(&self) -> &HashMap<String, String>
+    where
+        Self: Sized;
+
+    fn get_parameters_mut(&mut self) -> &mut HashMap<String, String>
     where
         Self: Sized;
 
@@ -44,27 +58,71 @@ pub trait Methods {
     fn q(self, q: String) -> Result<Self, NewsApiError>
     where
         Self: Sized;
-
-    fn sources(self, source: Vec<String>) -> Result<Self, NewsApiError>
-    where
-        Self: Sized;
 }
 
-impl<State> fmt::Display for NewsApiClient<State> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "url: {}", self.get_url())?;
-        writeln!(f, "parameters: {:#?}", self.get_parameters())?;
-        Ok(())
+pub trait CountryTrait {
+    fn country(mut self, country: Country) -> Self
+    where
+        Self: private::SupportCountry,
+    {
+        self.get_parameters_mut().insert(
+            "country".to_string(),
+            options::COUNTRY_LOOKUP[country].to_string(),
+        );
+        self
     }
 }
 
-impl<State> Methods for NewsApiClient<State> {
+pub trait CategoryTrait {
+    fn category(mut self, category: Category) -> Self
+    where
+        Self: private::SupportCategory,
+    {
+        self.get_parameters_mut()
+            .insert("category".into(), format!("{category:?}").to_lowercase());
+        self
+    }
+}
+
+pub trait SourcesTrait {
+    /// # Arguments
+    /// source : Vec<String>
+    ///
+    /// # Description
+    /// This function adds sources query to the url.
+    /// Expects to provide valid source id's in a Vec<String>. max length is 20.
+    ///
+    /// # Error
+    /// Raises `NewsApiError::ParamError`, if length of the vector is greater than 20.
+    fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError>
+    where
+        Self: private::SupportSources,
+    {
+        match source.len() < 21 {
+            true => {
+                self.get_parameters_mut()
+                    .insert("sources".to_string(), source.join(","));
+                Ok(self)
+            }
+            false => Err(NewsApiError::ParamError {
+                param: "sources".to_string(),
+                message: "cannot provide more than 20 source ids.".to_string(),
+            }),
+        }
+    }
+}
+
+impl<State> CommonMethods for NewsApiClient<State> {
     fn get_url(&self) -> &str {
         &self.url.as_str()
     }
 
     fn get_parameters(&self) -> &HashMap<String, String> {
         &self.parameters
+    }
+
+    fn get_parameters_mut(&mut self) -> &mut HashMap<String, String> {
+        &mut self.parameters
     }
 
     fn show_api_key(&self) -> &str {
@@ -131,29 +189,6 @@ impl<State> Methods for NewsApiClient<State> {
             }),
         }
     }
-
-    /// # Arguments
-    /// source : Vec<String>
-    ///
-    /// # Description
-    /// This function adds sources query to the url.
-    /// Expects to provide valid source id's in a Vec<String>. max length is 20.
-    ///
-    /// # Error
-    /// Raises `NewsApiError::ParamError`, if length of the vector is greater than 20.
-    fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError> {
-        match source.len() < 21 {
-            true => {
-                self.parameters
-                    .insert("sources".to_string(), source.join(","));
-                Ok(self)
-            }
-            false => Err(NewsApiError::ParamError {
-                param: "sources".to_string(),
-                message: "cannot provide more than 20 source ids.".to_string(),
-            }),
-        }
-    }
 }
 
 impl NewsApiClient<Everything> {
@@ -171,6 +206,9 @@ impl NewsApiClient<Everything> {
     }
 }
 
+impl private::SupportSources for NewsApiClient<Everything> {}
+impl SourcesTrait for NewsApiClient<Everything> {}
+
 impl NewsApiClient<TopHeadlines> {
     pub fn top_headlines(api_key: String) -> Self {
         let base = Url::parse(BASE_URL).unwrap();
@@ -185,18 +223,43 @@ impl NewsApiClient<TopHeadlines> {
             state: std::marker::PhantomData::<TopHeadlines>,
         }
     }
+}
 
-    pub fn category(mut self, category: Category) -> Self {
-        self.parameters
-            .insert("category".into(), format!("{category:?}").to_lowercase());
-        self
-    }
+impl private::SupportCountry for NewsApiClient<TopHeadlines> {}
+impl private::SupportCategory for NewsApiClient<TopHeadlines> {}
+impl private::SupportSources for NewsApiClient<TopHeadlines> {}
 
-    pub fn country(mut self, country: Country) -> Self {
-        self.parameters.insert(
-            "country".to_string(),
-            options::COUNTRY_LOOKUP[country].to_string(),
-        );
-        self
+impl CountryTrait for NewsApiClient<TopHeadlines> {}
+impl CategoryTrait for NewsApiClient<TopHeadlines> {}
+impl SourcesTrait for NewsApiClient<TopHeadlines> {}
+
+impl NewsApiClient<Sources> {
+    pub fn sources(api_key: String) -> Self {
+        let base = Url::parse(BASE_URL).unwrap();
+        let url = base.join("top-headlines").unwrap().join("sources").unwrap();
+
+        let parameters: HashMap<String, String> = HashMap::new();
+
+        Self {
+            api_key,
+            url,
+            parameters,
+            state: std::marker::PhantomData::<Sources>,
+        }
     }
+}
+
+impl private::SupportCountry for NewsApiClient<Sources> {}
+impl private::SupportCategory for NewsApiClient<Sources> {}
+
+impl CountryTrait for NewsApiClient<Sources> {}
+impl CategoryTrait for NewsApiClient<Sources> {}
+
+mod private {
+    use crate::parser::CommonMethods;
+
+    pub trait SupportCountry: CommonMethods + Sized {}
+    pub trait SupportCategory: CommonMethods + Sized {}
+
+    pub trait SupportSources: CommonMethods + Sized {}
 }
