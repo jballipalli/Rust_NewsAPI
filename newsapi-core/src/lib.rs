@@ -5,7 +5,7 @@ pub mod parser;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;
-pub use options::{Category, Country};
+pub use options::{Category, Country, Language, SearchIn};
 pub use parser::NewsApiClient;
 
 use ureq;

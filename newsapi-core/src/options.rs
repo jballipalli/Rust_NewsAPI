@@ -61,6 +61,63 @@ pub static COUNTRY_LOOKUP: LazyLock<EnumMap<Country, &'static str>> = LazyLock::
     }
 });
 
+pub static LANGUAGE_LOOKUP: LazyLock<EnumMap<Language, &'static str>> = LazyLock::new(|| {
+    enum_map! {
+        Language::Arabic => "ar",
+        Language::German => "de",
+        Language::English => "en",
+        Language::Spanish => "es",
+        Language::French => "fr",
+        Language::Hebrew => "he",
+        Language::Italian => "it",
+        Language::Dutch => "nl",
+        Language::Norwegian => "no",
+        Language::Portuguese => "pt",
+        Language::Russian => "ru",
+        Language::Swedish => "sv",
+        Language::Urdu => "ud",
+        Language::Chinese => "zh",
+    }
+});
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum SearchIn {
+    #[serde(rename = "title")]
+    Title,
+    #[serde(rename = "description")]
+    Description,
+    #[serde(rename = "content")]
+    Content,
+}
+
+impl SearchIn {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Content => "content",
+            Self::Description => "description",
+            Self::Title => "title",
+        }
+    }
+}
+
+#[derive(Debug, Enum)]
+pub enum Language {
+    Arabic,
+    German,
+    English,
+    Spanish,
+    French,
+    Hebrew,
+    Italian,
+    Dutch,
+    Norwegian,
+    Portuguese,
+    Russian,
+    Swedish,
+    Urdu,
+    Chinese,
+}
+
 #[derive(Debug, Enum)]
 pub enum Country {
     Argentina,
@@ -123,22 +180,16 @@ pub enum Country {
 pub enum Category {
     #[serde(rename = "business")]
     Business,
-
     #[serde(rename = "entertainment")]
     Entertainment,
-
     #[serde(rename = "general")]
     General,
-
     #[serde(rename = "health")]
     Health,
-
     #[serde(rename = "science")]
     Science,
-
     #[serde(rename = "sports")]
     Sports,
-
     #[serde(rename = "technology")]
     Technology,
 }

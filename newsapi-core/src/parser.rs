@@ -1,6 +1,7 @@
 use crate::NewsApiError;
+use crate::SearchIn::Description;
 use crate::options;
-use crate::{Category, Country};
+use crate::{Category, Country, Language, SearchIn};
 use core::fmt;
 use std::collections::HashMap;
 use url::Url;
@@ -8,9 +9,18 @@ use url::Url;
 static BASE_URL: &str = "https://newsapi.org/v2/";
 
 struct Everything;
+impl private::SupportSources for Everything {}
+impl private::SupportLanguage for Everything {}
+
 struct TopHeadlines;
+impl private::SupportSources for TopHeadlines {}
+impl private::SupportCategory for TopHeadlines {}
+impl private::SupportCountry for TopHeadlines {}
 
 struct Sources;
+impl private::SupportCategory for Sources {}
+impl private::SupportCountry for Sources {}
+impl private::SupportLanguage for Sources {}
 
 pub struct NewsApiClient<State> {
     api_key: String,
@@ -30,7 +40,7 @@ impl<State> fmt::Display for NewsApiClient<State> {
     }
 }
 
-pub trait CommonMethods {
+pub trait CommonTrait {
     fn get_url(&self) -> &str
     where
         Self: Sized;
@@ -60,11 +70,15 @@ pub trait CommonMethods {
         Self: Sized;
 }
 
-pub trait CountryTrait {
-    fn country(mut self, country: Country) -> Self
-    where
-        Self: private::SupportCountry,
-    {
+pub trait CountryTrait: Sized {
+    fn country(self, country: Country) -> Self;
+}
+
+impl<T> CountryTrait for NewsApiClient<T>
+where
+    T: private::SupportCountry,
+{
+    fn country(mut self, country: Country) -> Self {
         self.get_parameters_mut().insert(
             "country".to_string(),
             options::COUNTRY_LOOKUP[country].to_string(),
@@ -73,31 +87,39 @@ pub trait CountryTrait {
     }
 }
 
-pub trait CategoryTrait {
-    fn category(mut self, category: Category) -> Self
-    where
-        Self: private::SupportCategory,
-    {
+pub trait CategoryTrait: Sized {
+    fn category(self, category: Category) -> Self;
+}
+
+impl<T> CategoryTrait for NewsApiClient<T>
+where
+    T: private::SupportCategory,
+{
+    fn category(mut self, category: Category) -> Self {
         self.get_parameters_mut()
             .insert("category".into(), format!("{category:?}").to_lowercase());
         self
     }
 }
 
-pub trait SourcesTrait {
+pub trait SourcesTrait: Sized {
+    fn sources(self, source: Vec<String>) -> Result<Self, NewsApiError>;
+}
+
+impl<T> SourcesTrait for NewsApiClient<T>
+where
+    T: private::SupportSources,
+{
     /// # Arguments
-    /// source : Vec<String>
+    /// source : `Vec<String>`
     ///
     /// # Description
     /// This function adds sources query to the url.
-    /// Expects to provide valid source id's in a Vec<String>. max length is 20.
+    /// Expects to provide valid source id's in a `Vec<String>`. max length is 20.
     ///
     /// # Error
     /// Raises `NewsApiError::ParamError`, if length of the vector is greater than 20.
-    fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError>
-    where
-        Self: private::SupportSources,
-    {
+    fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError> {
         match source.len() < 21 {
             true => {
                 self.get_parameters_mut()
@@ -112,7 +134,24 @@ pub trait SourcesTrait {
     }
 }
 
-impl<State> CommonMethods for NewsApiClient<State> {
+pub trait LanguageTrait: Sized {
+    fn language(self, language: Language) -> Self;
+}
+
+impl<T> LanguageTrait for NewsApiClient<T>
+where
+    T: private::SupportLanguage,
+{
+    fn language(mut self, language: Language) -> Self {
+        self.get_parameters_mut().insert(
+            "language".to_string(),
+            options::LANGUAGE_LOOKUP[language].to_string(),
+        );
+        self
+    }
+}
+
+impl<State> CommonTrait for NewsApiClient<State> {
     fn get_url(&self) -> &str {
         &self.url.as_str()
     }
@@ -204,10 +243,25 @@ impl NewsApiClient<Everything> {
             state: std::marker::PhantomData::<Everything>,
         }
     }
-}
 
-impl private::SupportSources for NewsApiClient<Everything> {}
-impl SourcesTrait for NewsApiClient<Everything> {}
+    /// # Argument
+    /// search_in : `Vec<SearchIn>`
+    ///
+    /// # Description
+    /// adds searchIn and vectors elements to the parameters.
+    /// It convert SearchIn -> &'static str before adding them to the hashmap.
+    pub fn search_in(mut self, search_in: Vec<SearchIn>) -> Self {
+        self.parameters.insert(
+            "searchIn".into(),
+            search_in
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<&str>>()
+                .join(","),
+        );
+        self
+    }
+}
 
 impl NewsApiClient<TopHeadlines> {
     pub fn top_headlines(api_key: String) -> Self {
@@ -225,14 +279,6 @@ impl NewsApiClient<TopHeadlines> {
     }
 }
 
-impl private::SupportCountry for NewsApiClient<TopHeadlines> {}
-impl private::SupportCategory for NewsApiClient<TopHeadlines> {}
-impl private::SupportSources for NewsApiClient<TopHeadlines> {}
-
-impl CountryTrait for NewsApiClient<TopHeadlines> {}
-impl CategoryTrait for NewsApiClient<TopHeadlines> {}
-impl SourcesTrait for NewsApiClient<TopHeadlines> {}
-
 impl NewsApiClient<Sources> {
     pub fn sources(api_key: String) -> Self {
         let base = Url::parse(BASE_URL).unwrap();
@@ -249,17 +295,15 @@ impl NewsApiClient<Sources> {
     }
 }
 
-impl private::SupportCountry for NewsApiClient<Sources> {}
-impl private::SupportCategory for NewsApiClient<Sources> {}
-
-impl CountryTrait for NewsApiClient<Sources> {}
-impl CategoryTrait for NewsApiClient<Sources> {}
-
 mod private {
-    use crate::parser::CommonMethods;
+    pub trait SupportCountry: Sized {}
+    pub trait SupportCategory: Sized {}
+    pub trait SupportLanguage: Sized {}
+    pub trait SupportSources: Sized {}
+}
 
-    pub trait SupportCountry: CommonMethods + Sized {}
-    pub trait SupportCategory: CommonMethods + Sized {}
+fn main() -> Result<(), NewsApiError> {
+    let _s = NewsApiClient::top_headlines("api_key".into());
 
-    pub trait SupportSources: CommonMethods + Sized {}
+    Ok(())
 }
