@@ -1,5 +1,4 @@
 use crate::NewsApiError;
-use crate::SearchIn::Description;
 use crate::options;
 use crate::{Category, Country, Language, SearchIn};
 use core::fmt;
