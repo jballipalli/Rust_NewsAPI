@@ -80,7 +80,7 @@ pub static LANGUAGE_LOOKUP: LazyLock<EnumMap<Language, &'static str>> = LazyLock
     }
 });
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, Hash, Copy, PartialEq, Clone)]
 pub enum SearchIn {
     #[serde(rename = "title")]
     Title,

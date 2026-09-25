@@ -2,7 +2,7 @@ use crate::NewsApiError;
 use crate::options;
 use crate::{Category, Country, Language, SearchIn};
 use core::fmt;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use url::Url;
 
 static BASE_URL: &str = "https://newsapi.org/v2/";
@@ -249,16 +249,62 @@ impl NewsApiClient<Everything> {
     /// # Description
     /// adds searchIn and vectors elements to the parameters.
     /// It convert SearchIn -> &'static str before adding them to the hashmap.
-    pub fn search_in(mut self, search_in: Vec<SearchIn>) -> Self {
+    ///
+    /// # Error
+    /// Returns `NewsApiError::ParamError`, when provided with empty vector or contains duplicate values
+    pub fn search_in(mut self, search_in: Vec<SearchIn>) -> Result<Self, NewsApiError> {
+        if search_in.is_empty() {
+            return Err(NewsApiError::ParamError {
+                param: "searchIn".to_string(),
+                message: "provided empty vector".to_string(),
+            });
+        }
+
+        let mut seen = HashSet::new();
+        for value in &search_in {
+            if !seen.insert(*value) {
+                return Err(NewsApiError::ParamError {
+                    param: "searchIn".to_string(),
+                    message: "duplicate values are not allowed".to_string(),
+                });
+            }
+        }
+
         self.parameters.insert(
-            "searchIn".into(),
+            "searchIn".to_string(),
             search_in
                 .iter()
                 .map(|s| s.as_str())
-                .collect::<Vec<&str>>()
+                .collect::<Vec<_>>()
                 .join(","),
         );
-        self
+
+        Ok(self)
+    }
+
+    pub fn domain(mut self, domain: Vec<String>) -> Result<Self, NewsApiError> {
+        if domain.is_empty() {
+            return Err(NewsApiError::ParamError {
+                param: "domain".to_string(),
+                message: "provided empty vector".to_string(),
+            });
+        }
+
+        let mut seen = HashSet::new();
+
+        for x in domain {
+            if !seen.insert(x) {
+                return Err(NewsApiError::ParamError {
+                    param: "domain".to_string(),
+                    message: "contains duplicate value".to_string(),
+                });
+            }
+        }
+
+        self.parameters
+            .insert("domain".to_string(), domain.join(","));
+
+        Ok
     }
 }
 
@@ -302,7 +348,8 @@ mod private {
 }
 
 fn main() -> Result<(), NewsApiError> {
-    let _s = NewsApiClient::top_headlines("api_key".into());
+    let _s = NewsApiClient::everything("api_key".into())
+        .search_in(vec![SearchIn::Title, SearchIn::Description]);
 
     Ok(())
 }
