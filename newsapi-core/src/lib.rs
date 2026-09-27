@@ -43,3 +43,45 @@ pub fn render_article(articles: &NewsApiResponse) {
         println!("---");
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::parser::CommonTrait;
+
+    use super::*;
+    use dotenvy;
+    use std::env;
+
+    fn api_key() -> String {
+        let _ = dotenvy::dotenv();
+        env::var("API_KEY").unwrap()
+    }
+
+    #[test]
+    fn test_evereything() -> Result<(), NewsApiError> {
+        let mut client = NewsApiClient::everything(api_key());
+        client.q("rustlang")?.domains("bbc.com")?.build();
+
+        assert_eq!(client.get_url(), "https://newsapi.org/v2/everything");
+        Ok(())
+    }
+
+    #[test]
+    fn test_top_headlines() {
+        let mut client = NewsApiClient::top_headlines(api_key());
+        client.build();
+
+        assert_eq!(client.get_url(), "https://newsapi.org/v2/top-headlines")
+    }
+
+    #[test]
+    fn test_source() {
+        let mut client = NewsApiClient::sources(api_key());
+        client.build();
+
+        assert_eq!(
+            client.get_url(),
+            "https://newsapi.org/v2/top-headlines/sources"
+        )
+    }
+}

@@ -8,16 +8,16 @@ use url::Url;
 
 static BASE_URL: &str = "https://newsapi.org/v2/";
 
-struct Everything;
+pub struct Everything;
 impl private::SupportSources for Everything {}
 impl private::SupportLanguage for Everything {}
 
-struct TopHeadlines;
+pub struct TopHeadlines;
 impl private::SupportSources for TopHeadlines {}
 impl private::SupportCategory for TopHeadlines {}
 impl private::SupportCountry for TopHeadlines {}
 
-struct Sources;
+pub struct Sources;
 impl private::SupportCategory for Sources {}
 impl private::SupportCountry for Sources {}
 impl private::SupportLanguage for Sources {}
@@ -59,28 +59,28 @@ pub trait CommonTrait {
     where
         Self: Sized;
 
-    fn page_size(self, size: u8) -> Result<Self, NewsApiError>
+    fn page_size(&mut self, size: u8) -> Result<&mut Self, NewsApiError>
     where
         Self: Sized;
 
-    fn page(self, page: usize) -> Self
+    fn page(&mut self, page: usize) -> &mut Self
     where
         Self: Sized;
 
-    fn q(self, q: String) -> Result<Self, NewsApiError>
+    fn q(&mut self, q: &str) -> Result<&mut Self, NewsApiError>
     where
         Self: Sized;
 }
 
 pub trait CountryTrait: Sized {
-    fn country(self, country: Country) -> Self;
+    fn country(&mut self, country: Country) -> &mut Self;
 }
 
 impl<T> CountryTrait for NewsApiClient<T>
 where
     T: private::SupportCountry,
 {
-    fn country(mut self, country: Country) -> Self {
+    fn country(&mut self, country: Country) -> &mut Self {
         self.get_parameters_mut().insert(
             "country".to_string(),
             options::COUNTRY_LOOKUP[country].to_string(),
@@ -90,14 +90,14 @@ where
 }
 
 pub trait CategoryTrait: Sized {
-    fn category(self, category: Category) -> Self;
+    fn category(&mut self, category: Category) -> &mut Self;
 }
 
 impl<T> CategoryTrait for NewsApiClient<T>
 where
     T: private::SupportCategory,
 {
-    fn category(mut self, category: Category) -> Self {
+    fn category(&mut self, category: Category) -> &mut Self {
         self.get_parameters_mut()
             .insert("category".into(), format!("{category:?}").to_lowercase());
         self
@@ -105,7 +105,7 @@ where
 }
 
 pub trait SourcesTrait: Sized {
-    fn sources(self, source: Vec<String>) -> Result<Self, NewsApiError>;
+    fn sources(&mut self, source: Vec<String>) -> Result<&mut Self, NewsApiError>;
 }
 
 impl<T> SourcesTrait for NewsApiClient<T>
@@ -121,7 +121,7 @@ where
     ///
     /// # Error
     /// Raises `NewsApiError::ParamError`, if length of the vector is greater than 20.
-    fn sources(mut self, source: Vec<String>) -> Result<Self, NewsApiError> {
+    fn sources(&mut self, source: Vec<String>) -> Result<&mut Self, NewsApiError> {
         match source.len() < 21 {
             true => {
                 self.get_parameters_mut()
@@ -137,14 +137,14 @@ where
 }
 
 pub trait LanguageTrait: Sized {
-    fn language(self, language: Language) -> Self;
+    fn language(&mut self, language: Language) -> &mut Self;
 }
 
 impl<T> LanguageTrait for NewsApiClient<T>
 where
     T: private::SupportLanguage,
 {
-    fn language(mut self, language: Language) -> Self {
+    fn language(&mut self, language: Language) -> &mut Self {
         self.get_parameters_mut().insert(
             "language".to_string(),
             options::LANGUAGE_LOOKUP[language].to_string(),
@@ -181,7 +181,7 @@ impl<State> CommonTrait for NewsApiClient<State> {
     /// # Error
     /// Raise `NewsApiError::ParamError`, when size is out of bounds.
     ///
-    fn page_size(mut self, size: u8) -> Result<Self, NewsApiError> {
+    fn page_size(&mut self, size: u8) -> Result<&mut Self, NewsApiError> {
         match (1..=100).contains(&size) {
             true => {
                 self.parameters
@@ -204,7 +204,7 @@ impl<State> CommonTrait for NewsApiClient<State> {
     /// This selects which page of results to return. The page number is
     /// included in the request as the `page` query parameter. Use this to page through the results if the total results found is greater than the page size.
     ///
-    fn page(mut self, page: usize) -> Self {
+    fn page(&mut self, page: usize) -> &mut Self {
         self.parameters.insert("page".to_string(), page.to_string());
         self
     }
@@ -218,7 +218,7 @@ impl<State> CommonTrait for NewsApiClient<State> {
     ///
     /// # Error
     /// Raise `NewsApiError::ParamError`, as q is limited to 500 chars
-    fn q(mut self, q: String) -> Result<Self, NewsApiError> {
+    fn q(&mut self, q: &str) -> Result<&mut Self, NewsApiError> {
         match q.len() < 501 {
             true => {
                 self.parameters.insert("q".to_string(), q.to_string());
@@ -256,7 +256,7 @@ impl NewsApiClient<Everything> {
     ///
     /// # Error
     /// Returns `NewsApiError::ParamError`, when provided with empty vector or contains duplicate values
-    pub fn search_in(mut self, search_in: Vec<SearchIn>) -> Result<Self, NewsApiError> {
+    pub fn search_in(&mut self, search_in: Vec<SearchIn>) -> Result<&mut Self, NewsApiError> {
         if search_in.is_empty() {
             return Err(NewsApiError::ParamError {
                 param: "searchIn".to_string(),
@@ -286,7 +286,7 @@ impl NewsApiClient<Everything> {
         Ok(self)
     }
 
-    pub fn domains(mut self, domains: &str) -> Result<Self, NewsApiError> {
+    pub fn domains(&mut self, domains: &str) -> Result<&mut Self, NewsApiError> {
         if domains.is_empty() {
             return Err(NewsApiError::ParamError {
                 param: "domain".to_string(),
@@ -300,7 +300,7 @@ impl NewsApiClient<Everything> {
         Ok(self)
     }
 
-    pub fn exclude_domains(mut self, domains: &str) -> Result<Self, NewsApiError> {
+    pub fn exclude_domains(&mut self, domains: &str) -> Result<&mut Self, NewsApiError> {
         if domains.is_empty() {
             return Err(NewsApiError::ParamError {
                 param: "excludeDomains".to_string(),
@@ -335,7 +335,7 @@ impl NewsApiClient<TopHeadlines> {
 impl NewsApiClient<Sources> {
     pub fn sources(api_key: String) -> Self {
         let base = Url::parse(BASE_URL).unwrap();
-        let url = base.join("top-headlines").unwrap().join("sources").unwrap();
+        let url = base.join("top-headlines/sources").unwrap();
 
         let parameters: HashMap<String, String> = HashMap::new();
 
@@ -394,11 +394,4 @@ mod private {
     pub trait SupportCategory: Sized {}
     pub trait SupportLanguage: Sized {}
     pub trait SupportSources: Sized {}
-}
-
-fn main() -> Result<(), NewsApiError> {
-    let _s = NewsApiClient::everything("api_key".into())
-        .search_in(vec![SearchIn::Title, SearchIn::Description]);
-
-    Ok(())
 }
