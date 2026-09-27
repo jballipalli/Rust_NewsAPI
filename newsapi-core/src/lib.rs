@@ -5,7 +5,7 @@ pub mod parser;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;
-pub use options::{Category, Country, Language, SearchIn};
+pub use options::{Category, Country, Language, SearchIn, SortBy};
 pub use parser::NewsApiClient;
 
 use ureq;
@@ -119,6 +119,24 @@ mod tests {
             .build();
 
         assert!(matches!(c, Err(NewsApiError::BuildError)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_page_size_error() -> Result<(), NewsApiError> {
+        let mut client = NewsApiClient::top_headlines(api_key());
+
+        let result = client.country(Country::Russia).page_size(200);
+
+        assert!(matches!(
+            result,
+            Err(NewsApiError::ParamError {
+                param,
+                message
+            })
+            if param == "pageSize" && message.contains("1 and 100")
+        ));
 
         Ok(())
     }

@@ -100,6 +100,26 @@ impl SearchIn {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum SortBy {
+    #[serde(rename = "relevancy")]
+    Relevancy,
+    #[serde(rename = "popularity")]
+    Popularity,
+    #[serde(rename = "publishedAt")]
+    PublishedAt,
+}
+
+impl SortBy {
+    pub fn as_ref(&self) -> &'static str {
+        match self {
+            SortBy::PublishedAt => "publishedAt",
+            SortBy::Popularity => "popularity",
+            SortBy::Relevancy => "relevancy",
+        }
+    }
+}
+
 #[derive(Debug, Enum)]
 pub enum Language {
     Arabic,

@@ -1,7 +1,7 @@
 use crate::NewsApiError;
 use crate::NewsApiResponse;
 use crate::options;
-use crate::{Category, Country, Language, SearchIn};
+use crate::{Category, Country, Language, SearchIn, SortBy};
 use core::fmt;
 use std::collections::{HashMap, HashSet};
 use url::Url;
@@ -313,6 +313,13 @@ impl NewsApiClient<Everything> {
             .insert("excludeDomains".to_string(), domains.to_owned());
 
         Ok(self)
+    }
+
+    pub fn sort_by(&mut self, sort: SortBy) -> &mut Self {
+        self.parameters
+            .insert("sortBy".to_owned(), sort.as_ref().to_owned());
+
+        self
     }
 }
 
