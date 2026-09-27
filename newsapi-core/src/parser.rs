@@ -1,4 +1,5 @@
 use crate::NewsApiError;
+use crate::NewsApiResponse;
 use crate::options;
 use crate::{Category, Country, Language, SearchIn};
 use core::fmt;
@@ -27,6 +28,8 @@ pub struct NewsApiClient<State> {
     url: Url,
 
     parameters: HashMap<String, String>,
+
+    is_built: bool,
 
     state: std::marker::PhantomData<State>,
 }
@@ -240,11 +243,12 @@ impl NewsApiClient<Everything> {
             url,
             parameters,
             state: std::marker::PhantomData::<Everything>,
+            is_built: false,
         }
     }
 
     /// # Argument
-    /// search_in : `Vec<SearchIn>`
+    /// search_in : `&str`
     ///
     /// # Description
     /// adds searchIn and vectors elements to the parameters.
@@ -282,29 +286,32 @@ impl NewsApiClient<Everything> {
         Ok(self)
     }
 
-    pub fn domain(mut self, domain: Vec<String>) -> Result<Self, NewsApiError> {
-        if domain.is_empty() {
+    pub fn domains(mut self, domains: &str) -> Result<Self, NewsApiError> {
+        if domains.is_empty() {
             return Err(NewsApiError::ParamError {
                 param: "domain".to_string(),
-                message: "provided empty vector".to_string(),
+                message: "provided empty string".to_string(),
             });
         }
 
-        let mut seen = HashSet::new();
+        self.parameters
+            .insert("domains".to_string(), domains.to_owned());
 
-        for x in domain {
-            if !seen.insert(x) {
-                return Err(NewsApiError::ParamError {
-                    param: "domain".to_string(),
-                    message: "contains duplicate value".to_string(),
-                });
-            }
+        Ok(self)
+    }
+
+    pub fn exclude_domains(mut self, domains: &str) -> Result<Self, NewsApiError> {
+        if domains.is_empty() {
+            return Err(NewsApiError::ParamError {
+                param: "excludeDomains".to_string(),
+                message: "provided empty string".to_string(),
+            });
         }
 
         self.parameters
-            .insert("domain".to_string(), domain.join(","));
+            .insert("excludeDomains".to_string(), domains.to_owned());
 
-        Ok
+        Ok(self)
     }
 }
 
@@ -319,6 +326,7 @@ impl NewsApiClient<TopHeadlines> {
             api_key,
             url,
             parameters,
+            is_built: false,
             state: std::marker::PhantomData::<TopHeadlines>,
         }
     }
@@ -335,8 +343,49 @@ impl NewsApiClient<Sources> {
             api_key,
             url,
             parameters,
+            is_built: false,
             state: std::marker::PhantomData::<Sources>,
         }
+    }
+}
+
+impl<State> NewsApiClient<State> {
+    /// Build the url.
+    ///
+    /// updates the url if there are any additional parameters are provided.
+    pub fn build(&mut self) -> &Self {
+        if self.get_parameters().is_empty() || self.is_built {
+            return self;
+        }
+
+        self.url
+            .query_pairs_mut()
+            .extend_pairs(self.parameters.iter());
+
+        self.is_built = true;
+
+        self
+    }
+
+    /// fetches `NewsApiResponse` using ureq crate.
+    ///
+    /// if `self.is_built = false`, calls `self.build()` method to update the url.
+    pub fn fetch(mut self) -> Result<NewsApiResponse, NewsApiError> {
+        if !self.is_built {
+            self.build();
+        }
+
+        let response: String = ureq::get(self.get_url())
+            .call()
+            .map_err(|e| NewsApiError::BadRequest(e))?
+            .body_mut()
+            .read_to_string()
+            .map_err(|e| NewsApiError::FailedToParseIntoString(e))?;
+
+        let articles = serde_json::from_str::<NewsApiResponse>(response.as_str())
+            .map_err(|e| NewsApiError::FailedToParseIntoJSON(e))?;
+
+        Ok(articles)
     }
 }
 

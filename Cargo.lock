@@ -297,7 +297,7 @@ dependencies = [
 
 [[package]]
 name = "newsapi-core"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "colour",
  "dotenvy",
