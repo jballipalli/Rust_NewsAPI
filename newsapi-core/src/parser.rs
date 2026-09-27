@@ -378,12 +378,13 @@ impl<State> NewsApiClient<State> {
     /// fetches `NewsApiResponse` using ureq crate.
     ///
     /// if `self.is_built = false`, calls `self.build()` method to update the url.
-    pub fn fetch(mut self) -> Result<NewsApiResponse, NewsApiError> {
+    pub fn fetch(&mut self) -> Result<NewsApiResponse, NewsApiError> {
         if !self.is_built {
             self.build()?;
         }
 
         let response: String = ureq::get(self.get_url())
+            .header("Authorization", self.show_api_key())
             .call()
             .map_err(|e| NewsApiError::BadRequest(e))?
             .body_mut()

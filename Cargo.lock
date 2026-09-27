@@ -289,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "newsapi-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "dotenvy",
  "newsapi-core",
@@ -297,7 +297,7 @@ dependencies = [
 
 [[package]]
 name = "newsapi-core"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "colour",
  "dotenvy",
