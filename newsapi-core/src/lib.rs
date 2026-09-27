@@ -46,11 +46,12 @@ pub fn render_article(articles: &NewsApiResponse) {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::CommonTrait;
+    use crate::parser::{CategoryTrait, CommonTrait, CountryTrait};
 
     use super::*;
     use dotenvy;
     use std::env;
+    use url::Url;
 
     fn api_key() -> String {
         let _ = dotenvy::dotenv();
@@ -58,30 +59,47 @@ mod tests {
     }
 
     #[test]
-    fn test_evereything() -> Result<(), NewsApiError> {
+    fn test_evereything() -> Result<(), Box<dyn std::error::Error>> {
         let mut client = NewsApiClient::everything(api_key());
         client.q("rustlang")?.domains("bbc.com")?.build();
 
-        assert_eq!(client.get_url(), "https://newsapi.org/v2/everything");
+        let actual: std::collections::HashMap<String, String> = Url::parse(client.get_url())?
+            .query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
+            .collect();
+
+        assert_eq!(actual, *client.get_parameters());
         Ok(())
     }
 
     #[test]
-    fn test_top_headlines() {
+    fn test_top_headlines() -> Result<(), Box<dyn std::error::Error>> {
         let mut client = NewsApiClient::top_headlines(api_key());
-        client.build();
+        client
+            .country(Country::India)
+            .category(Category::Technology)
+            .build();
 
-        assert_eq!(client.get_url(), "https://newsapi.org/v2/top-headlines")
+        let actual: std::collections::HashMap<String, String> = Url::parse(client.get_url())?
+            .query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
+            .collect();
+
+        assert_eq!(actual, *client.get_parameters());
+        Ok(())
     }
 
     #[test]
-    fn test_source() {
+    fn test_source() -> Result<(), Box<dyn std::error::Error>> {
         let mut client = NewsApiClient::sources(api_key());
         client.build();
 
-        assert_eq!(
-            client.get_url(),
-            "https://newsapi.org/v2/top-headlines/sources"
-        )
+        let actual: std::collections::HashMap<String, String> = Url::parse(client.get_url())?
+            .query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
+            .collect();
+
+        assert_eq!(actual, *client.get_parameters());
+        Ok(())
     }
 }
