@@ -46,7 +46,7 @@ pub fn render_article(articles: &NewsApiResponse) {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{CategoryTrait, CommonTrait, CountryTrait};
+    use crate::parser::{CategoryTrait, CommonTrait, CountryTrait, LanguageTrait, SourcesTrait};
 
     use super::*;
     use dotenvy;
@@ -61,7 +61,7 @@ mod tests {
     #[test]
     fn test_evereything() -> Result<(), Box<dyn std::error::Error>> {
         let mut client = NewsApiClient::everything(api_key());
-        client.q("rustlang")?.domains("bbc.com")?.build();
+        client.q("rustlang")?.domains("bbc.com")?.build()?;
 
         let actual: std::collections::HashMap<String, String> = Url::parse(client.get_url())?
             .query_pairs()
@@ -78,7 +78,7 @@ mod tests {
         client
             .country(Country::India)
             .category(Category::Technology)
-            .build();
+            .build()?;
 
         let actual: std::collections::HashMap<String, String> = Url::parse(client.get_url())?
             .query_pairs()
@@ -92,7 +92,11 @@ mod tests {
     #[test]
     fn test_source() -> Result<(), Box<dyn std::error::Error>> {
         let mut client = NewsApiClient::sources(api_key());
-        client.build();
+        client
+            .language(Language::English)
+            .country(Country::Canada)
+            .category(Category::Health)
+            .build()?;
 
         let actual: std::collections::HashMap<String, String> = Url::parse(client.get_url())?
             .query_pairs()
@@ -100,6 +104,22 @@ mod tests {
             .collect();
 
         assert_eq!(actual, *client.get_parameters());
+        Ok(())
+    }
+
+    #[test]
+    fn test_source_with_country() -> Result<(), NewsApiError> {
+        let mut client = NewsApiClient::top_headlines(api_key());
+
+        let c = client
+            .sources(vec!["bbc.com", "techcrunch.com"])
+            .unwrap()
+            .category(Category::Business)
+            .country(Country::Japan)
+            .build();
+
+        assert!(matches!(c, Err(NewsApiError::BuildError)));
+
         Ok(())
     }
 }

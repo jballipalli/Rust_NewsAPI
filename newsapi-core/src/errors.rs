@@ -20,4 +20,7 @@ pub enum NewsApiError {
 
     #[error("Parameter '{param}' error: {message}")]
     ParamError { param: String, message: String },
+
+    #[error("Parameters country or category used along with sources. Please use sources endpoint.")]
+    BuildError,
 }

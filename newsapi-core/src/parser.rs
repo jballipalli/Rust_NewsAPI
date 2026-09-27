@@ -22,6 +22,7 @@ impl private::SupportCategory for Sources {}
 impl private::SupportCountry for Sources {}
 impl private::SupportLanguage for Sources {}
 
+#[derive(Debug, PartialEq)]
 pub struct NewsApiClient<State> {
     api_key: String,
 
@@ -105,7 +106,7 @@ where
 }
 
 pub trait SourcesTrait: Sized {
-    fn sources(&mut self, source: Vec<String>) -> Result<&mut Self, NewsApiError>;
+    fn sources(&mut self, source: Vec<&str>) -> Result<&mut Self, NewsApiError>;
 }
 
 impl<T> SourcesTrait for NewsApiClient<T>
@@ -121,7 +122,7 @@ where
     ///
     /// # Error
     /// Raises `NewsApiError::ParamError`, if length of the vector is greater than 20.
-    fn sources(&mut self, source: Vec<String>) -> Result<&mut Self, NewsApiError> {
+    fn sources(&mut self, source: Vec<&str>) -> Result<&mut Self, NewsApiError> {
         match source.len() < 21 {
             true => {
                 self.get_parameters_mut()
@@ -353,18 +354,25 @@ impl<State> NewsApiClient<State> {
     /// Build the url.
     ///
     /// updates the url if there are any additional parameters are provided.
-    pub fn build(&mut self) -> &Self {
+    ///
+    /// # Error
+    /// Raises `NewsApiError::BuildError`, if sources param used along with country or category.
+    pub fn build(&mut self) -> Result<&Self, NewsApiError> {
         if self.get_parameters().is_empty() || self.is_built {
-            return self;
+            return Ok(self);
         }
-
+        if self.parameters.contains_key("sources")
+            && (self.parameters.contains_key("country") || self.parameters.contains_key("category"))
+        {
+            return Err(NewsApiError::BuildError);
+        }
         self.url
             .query_pairs_mut()
             .extend_pairs(self.parameters.iter());
 
         self.is_built = true;
 
-        self
+        Ok(self)
     }
 
     /// fetches `NewsApiResponse` using ureq crate.
@@ -372,7 +380,7 @@ impl<State> NewsApiClient<State> {
     /// if `self.is_built = false`, calls `self.build()` method to update the url.
     pub fn fetch(mut self) -> Result<NewsApiResponse, NewsApiError> {
         if !self.is_built {
-            self.build();
+            self.build()?;
         }
 
         let response: String = ureq::get(self.get_url())
