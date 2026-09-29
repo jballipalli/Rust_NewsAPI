@@ -1,4 +1,4 @@
-use newsapi_core;
+use newsapi_core::{Country, NewsApiClient, parser::CountryTrait};
 
 use dotenvy;
 use std::env;
@@ -7,13 +7,11 @@ fn main() -> Result<(), newsapi_core::NewsApiError> {
     let _ = dotenvy::dotenv();
 
     let api_key = env::var("API_KEY").map_err(|e| newsapi_core::NewsApiError::APIKeyNotFound(e))?;
-    let url = String::from("https://newsapi.org/v2/top-headlines?country=us");
 
-    println!("{url}&apiKey={api_key}");
+    let mut client = NewsApiClient::top_headlines(api_key);
+    let response = client.country(Country::UnitedStates).fetch().unwrap();
 
-    let arti = newsapi_core::get_news(&format!("{}&apiKey={}", url, api_key))?;
-
-    newsapi_core::render_article(&arti);
+    newsapi_core::render_article(&response);
 
     Ok(())
 }
