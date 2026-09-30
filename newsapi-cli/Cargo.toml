@@ -1,8 +1,9 @@
 [package]
 name = "newsapi-cli"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 
 [dependencies]
+colour = "2.1.0"
 dotenvy = "0.15.7"
 newsapi-core = { path = "../newsapi-core" }

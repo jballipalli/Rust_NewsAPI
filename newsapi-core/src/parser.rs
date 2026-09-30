@@ -4,6 +4,7 @@ use crate::options;
 use crate::{Category, Country, Language, SearchIn, SortBy};
 use core::fmt;
 use std::collections::{HashMap, HashSet};
+use ureq;
 use url::Url;
 
 static BASE_URL: &str = "https://newsapi.org/v2/";
