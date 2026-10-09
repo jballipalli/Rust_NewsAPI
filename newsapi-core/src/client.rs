@@ -89,6 +89,16 @@ impl<S: SupportCountry> NewsApiClient<S> {
     }
 }
 
+impl<S: SupportDateRange> NewsApiClient<S> {
+    pub fn from(mut self, datetime) -> Result<Self> {
+        todo!();
+    }
+
+    pub fn to(mut self, datetime) -> Result<Self> {
+        todo!();
+    }
+}
+
 impl<S: SupportFilterSource> NewsApiClient<S> {
     /// Sets the domains used to filter the request.
     ///

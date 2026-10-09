@@ -1,9 +1,10 @@
 [package]
 name = "newsapi-core"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.45"
 dotenvy = "0.15.7"
 enum-map = "3.1.0"
 serde = { version = "1.0.229", features = ["derive"] }
