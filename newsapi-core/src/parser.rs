@@ -318,7 +318,7 @@ impl NewsApiClient<Everything> {
 
     pub fn sort_by(&mut self, sort: SortBy) -> &mut Self {
         self.parameters
-            .insert("sortBy".to_owned(), sort.as_ref().to_owned());
+            .insert("sortBy".to_owned(), sort.as_str().to_owned());
 
         self
     }

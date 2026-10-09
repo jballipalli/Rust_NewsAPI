@@ -49,7 +49,7 @@ impl Article {
         &self.url.as_str()
     }
 
-    pub fn author(&self) -> &Option<String> {
-        &self.author
+    pub fn author(&self) -> Option<&str> {
+        self.author.as_deref()
     }
 }

@@ -1,7 +1,11 @@
-pub mod errors;
-pub mod models;
-pub mod options;
-pub mod parser;
+mod capabilities;
+mod client;
+mod endpoint;
+mod errors;
+mod models;
+mod options;
+mod parameters;
+mod parser;
 
 pub use errors::NewsApiError;
 pub use models::NewsApiResponse;

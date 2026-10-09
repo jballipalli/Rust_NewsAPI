@@ -19,8 +19,13 @@ pub enum NewsApiError {
     APIKeyNotFound(VarError),
 
     #[error("Parameter '{param}' error: {message}")]
-    ParamError { param: String, message: String },
+    ParamError {
+        param: &'static str,
+        message: &'static str,
+    },
 
     #[error("Parameters country or category used along with sources. Please use sources endpoint.")]
     BuildError,
 }
+
+pub type Result<T> = std::result::Result<T, NewsApiError>;

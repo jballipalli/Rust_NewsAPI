@@ -2,65 +2,6 @@ use enum_map::{Enum, EnumMap, enum_map};
 use serde::{self, Deserialize, Serialize};
 use std::sync::LazyLock;
 
-pub static COUNTRY_LOOKUP: LazyLock<EnumMap<Country, &'static str>> = LazyLock::new(|| {
-    enum_map! {
-        Country::Argentina => "ar",
-        Country::Australia => "au",
-        Country::Austria => "at",
-        Country::Belgium => "be",
-        Country::Brazil => "br",
-        Country::Bulgaria => "bg",
-        Country::Canada => "ca",
-        Country::China => "cn",
-        Country::Colombia => "co",
-        Country::Cuba => "cu",
-        Country::CzechRepublic => "cz",
-        Country::Egypt => "eg",
-        Country::France => "fr",
-        Country::Germany => "de",
-        Country::Greece => "gr",
-        Country::HongKong => "hk",
-        Country::Hungary => "hu",
-        Country::India => "in",
-        Country::Indonesia => "id",
-        Country::Ireland => "ie",
-        Country::Israel => "il",
-        Country::Italy => "it",
-        Country::Japan => "jp",
-        Country::Latvia => "lv",
-        Country::Lithuania => "lt",
-        Country::Malaysia => "my",
-        Country::Mexico => "mx",
-        Country::Morocco => "ma",
-        Country::Netherlands => "nl",
-        Country::NewZealand => "nz",
-        Country::Nigeria => "ng",
-        Country::Norway => "no",
-        Country::Philippines => "ph",
-        Country::Poland => "pl",
-        Country::Portugal => "pt",
-        Country::Romania => "ro",
-        Country::Russia => "ru",
-        Country::SaudiArabia => "sa",
-        Country::Serbia => "rs",
-        Country::Singapore => "sg",
-        Country::Slovakia => "sk",
-        Country::Slovenia => "si",
-        Country::SouthAfrica => "za",
-        Country::SouthKorea => "kr",
-        Country::Sweden => "se",
-        Country::Switzerland => "ch",
-        Country::Taiwan => "tw",
-        Country::Thailand => "th",
-        Country::Turkiye => "tr",
-        Country::UAE => "ae",
-        Country::Ukraine => "ua",
-        Country::UnitedKingdom => "gb",
-        Country::UnitedStates => "us",
-        Country::Venuzuela => "ve",
-    }
-});
-
 pub static LANGUAGE_LOOKUP: LazyLock<EnumMap<Language, &'static str>> = LazyLock::new(|| {
     enum_map! {
         Language::Arabic => "ar",
@@ -91,7 +32,7 @@ pub enum SearchIn {
 }
 
 impl SearchIn {
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Content => "content",
             Self::Description => "description",
@@ -111,7 +52,7 @@ pub enum SortBy {
 }
 
 impl SortBy {
-    pub fn as_ref(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             SortBy::PublishedAt => "publishedAt",
             SortBy::Popularity => "popularity",
@@ -193,7 +134,68 @@ pub enum Country {
     Ukraine,
     UnitedKingdom,
     UnitedStates,
-    Venuzuela,
+    Venezuela,
+}
+
+impl Country {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Country::Argentina => "ar",
+            Country::Australia => "au",
+            Country::Austria => "at",
+            Country::Belgium => "be",
+            Country::Brazil => "br",
+            Country::Bulgaria => "bg",
+            Country::Canada => "ca",
+            Country::China => "cn",
+            Country::Colombia => "co",
+            Country::Cuba => "cu",
+            Country::CzechRepublic => "cz",
+            Country::Egypt => "eg",
+            Country::France => "fr",
+            Country::Germany => "de",
+            Country::Greece => "gr",
+            Country::HongKong => "hk",
+            Country::Hungary => "hu",
+            Country::India => "in",
+            Country::Indonesia => "id",
+            Country::Ireland => "ie",
+            Country::Israel => "il",
+            Country::Italy => "it",
+            Country::Japan => "jp",
+            Country::Latvia => "lv",
+            Country::Lithuania => "lt",
+            Country::Malaysia => "my",
+            Country::Mexico => "mx",
+            Country::Morocco => "ma",
+            Country::Netherlands => "nl",
+            Country::NewZealand => "nz",
+            Country::Nigeria => "ng",
+            Country::Norway => "no",
+            Country::Philippines => "ph",
+            Country::Poland => "pl",
+            Country::Portugal => "pt",
+            Country::Romania => "ro",
+            Country::Russia => "ru",
+            Country::SaudiArabia => "sa",
+            Country::Serbia => "rs",
+            Country::Singapore => "sg",
+            Country::Slovakia => "sk",
+            Country::Slovenia => "si",
+            Country::SouthAfrica => "za",
+            Country::SouthKorea => "kr",
+            Country::Sweden => "se",
+            Country::Switzerland => "ch",
+            Country::Taiwan => "tw",
+            Country::Thailand => "th",
+            Country::Turkiye => "tr",
+            Country::UAE => "ae",
+            Country::Ukraine => "ua",
+            Country::UnitedKingdom => "gb",
+            Country::UnitedStates => "us",
+            Country::Venezuela => "ve",
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -212,4 +214,18 @@ pub enum Category {
     Sports,
     #[serde(rename = "technology")]
     Technology,
+}
+
+impl Category {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Category::Business => "business",
+            Category::Entertainment => "entertainment",
+            Category::General => "general",
+            Category::Health => "health",
+            Category::Science => "science",
+            Category::Sports => "sports",
+            Category::Technology => "technology",
+        }
+    }
 }
