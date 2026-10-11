@@ -1,12 +1,7 @@
-use serde::{self, Deserialize, Serialize};
-
-#[derive(Debug, Serialize, Deserialize, Eq, Hash, Copy, PartialEq, Clone)]
+#[derive(Debug, Eq, Hash, Copy, PartialEq, Clone)]
 pub enum SearchIn {
-    #[serde(rename = "title")]
     Title,
-    #[serde(rename = "description")]
     Description,
-    #[serde(rename = "content")]
     Content,
 }
 
@@ -20,13 +15,10 @@ impl SearchIn {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub enum SortBy {
-    #[serde(rename = "relevancy")]
     Relevancy,
-    #[serde(rename = "popularity")]
     Popularity,
-    #[serde(rename = "publishedAt")]
     PublishedAt,
 }
 
@@ -198,21 +190,14 @@ impl Country {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub enum Category {
-    #[serde(rename = "business")]
     Business,
-    #[serde(rename = "entertainment")]
     Entertainment,
-    #[serde(rename = "general")]
     General,
-    #[serde(rename = "health")]
     Health,
-    #[serde(rename = "science")]
     Science,
-    #[serde(rename = "sports")]
     Sports,
-    #[serde(rename = "technology")]
     Technology,
 }
 
