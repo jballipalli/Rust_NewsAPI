@@ -122,7 +122,7 @@ impl<S: SupportDateRange> NewsApiClient<S> {
     ///             .from("2026-10-01")?;
     /// ```
     pub fn from(mut self, datetime: impl AsRef<str>) -> Result<Self> {
-        let date = Self::validate(datetime.as_ref())?;
+        let date = Self::validate(datetime.as_ref(), "from")?;
         self.parameters.set("from", date);
         Ok(self)
     }
@@ -136,12 +136,12 @@ impl<S: SupportDateRange> NewsApiClient<S> {
     ///         .to("2026-10-09T15:30:00")?;
     ///```
     pub fn to(mut self, datetime: impl AsRef<str>) -> Result<Self> {
-        let date = Self::validate(datetime.as_ref())?;
+        let date = Self::validate(datetime.as_ref(), "to")?;
         self.parameters.set("to", date);
         Ok(self)
     }
 
-    fn validate(input: &str) -> Result<String> {
+    fn validate(input: &str, param: &'static str) -> Result<String> {
         let now = Utc::now();
         let today = now.date_naive();
 
@@ -149,11 +149,17 @@ impl<S: SupportDateRange> NewsApiClient<S> {
         if let Ok(date) = NaiveDate::parse_from_str(input, "%Y-%m-%d") {
             // Enforce the exact format, including zero-padding.
             if date.format("%Y-%m-%d").to_string() != input {
-                return Err(NewsApiError::BuildError);
+                return Err(NewsApiError::ParamError {
+                    param: param,
+                    message: "Invalid date format. format to YYYY-MM-DD",
+                });
             }
 
             if date > today {
-                return Err(NewsApiError::BuildError);
+                return Err(NewsApiError::ParamError {
+                    param,
+                    message: "Provided future date",
+                });
             }
 
             return Ok(date.format("%Y-%m-%d").to_string());
@@ -163,12 +169,18 @@ impl<S: SupportDateRange> NewsApiClient<S> {
         if let Ok(datetime) = NaiveDateTime::parse_from_str(input, "%Y-%m-%dT%H:%M:%S") {
             // Enforce the exact format.
             if datetime.format("%Y-%m-%dT%H:%M:%S").to_string() != input {
-                return Err(NewsApiError::BuildError);
+                return Err(NewsApiError::ParamError {
+                    param,
+                    message: "Invalid DateTime format. Format to YYYY-MM-DDTHH:MM:SS",
+                });
             }
 
             // This comparison treats the timezone-free timestamp as UTC.
             if datetime > now.naive_utc() {
-                return Err(NewsApiError::BuildError);
+                return Err(NewsApiError::ParamError {
+                    param,
+                    message: "Provided future DateTime",
+                });
             }
 
             return Ok(datetime.format("%Y-%m-%dT%H:%M:%S").to_string());
