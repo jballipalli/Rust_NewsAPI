@@ -8,17 +8,17 @@ fn main() -> Result<(), newsapi_core::NewsApiError> {
     let client = NewsApiClient::top_headlines(api_key).category(newsapi_core::Category::Health);
     let response = client.fetch().unwrap();
 
-    render_article(&response);
+    render_article(response);
 
     println!("{client}");
 
     Ok(())
 }
 
-fn render_article(articles: &NewsApiResponse) {
+fn render_article(articles: NewsApiResponse) {
     for article in articles.get_articles() {
         dark_cyan_ln!("{}", article.title());
-        match &article.author() {
+        match article.author() {
             Some(name) => {
                 blue_ln!("{}", name)
             }
