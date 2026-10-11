@@ -21,7 +21,7 @@ impl<S: Endpoint> NewsApiClient<S> {
     /// fetches `NewsApiResponse` using ureq crate.
     ///
     /// if `self.is_built = false`, calls `self.build()` method to update the url.
-    pub fn fetch(&self) -> Result<NewsApiResponse, NewsApiError> {
+    pub fn fetch(&self) -> Result<NewsApiResponse> {
         let response: String = ureq::get(self.url())
             .header("Authorization", self.show_api_key())
             .call()

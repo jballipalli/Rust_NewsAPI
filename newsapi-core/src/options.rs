@@ -1,4 +1,4 @@
-#[derive(Debug, Eq, Hash, Copy, PartialEq, Clone)]
+#[derive(Debug)]
 pub enum SearchIn {
     Title,
     Description,
