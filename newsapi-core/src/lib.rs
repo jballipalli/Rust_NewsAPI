@@ -7,7 +7,7 @@ mod options;
 mod parameters;
 mod parser;
 
-pub use errors::NewsApiError;
+pub use errors::{NewsApiError, Result};
 pub use models::NewsApiResponse;
 pub use options::{Category, Country, Language, SearchIn, SortBy};
 

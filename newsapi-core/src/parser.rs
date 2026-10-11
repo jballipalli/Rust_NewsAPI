@@ -1,7 +1,7 @@
 use crate::NewsApiClient;
 use crate::NewsApiError;
 use crate::NewsApiResponse;
-
+use crate::Result;
 use crate::endpoint::Endpoint;
 
 use dotenvy;
@@ -9,12 +9,10 @@ use ureq;
 
 use std::env;
 
-pub fn get_api_key(name: impl Into<String>) -> String {
+pub fn get_api_key(name: impl Into<String>) -> Result<String> {
     let _ = dotenvy::dotenv();
 
-    let name = env::var(name.into())
-        .map_err(|err| NewsApiError::APIKeyNotFound(err))
-        .unwrap();
+    let name = env::var(name.into()).map_err(|err| NewsApiError::APIKeyNotFound(err));
 
     return name;
 }
