@@ -67,6 +67,10 @@ impl<S: Endpoint> NewsApiClient<S> {
         Ok(url)
     }
 
+    pub fn show_api_key(&self) -> &str {
+        self.api_key.as_ref()
+    }
+
     pub fn url(&self) -> String {
         self.build_url().unwrap().to_string()
     }
@@ -294,7 +298,7 @@ impl<S: SupportQuery> NewsApiClient<S> {
     /// let client = NewsApiCLient::top_headlines("api-key")
     ///             .q("artificial+inteliigence")
     /// ```
-    fn q(mut self, q: impl Into<String>) -> Result<Self> {
+    pub fn q(mut self, q: impl Into<String>) -> Result<Self> {
         let q = q.into();
         match q.len() < 501 {
             true => {
@@ -372,7 +376,7 @@ impl<S: SupportSources> NewsApiClient<S> {
     /// let client = NewsApiClient::top_headlines("api-key")
     ///             .sources(vec!["bbc-news","business-insider"])
     /// ```
-    fn sources(mut self, source: Vec<impl Into<String>>) -> Result<Self> {
+    pub fn sources(mut self, source: Vec<impl Into<String>>) -> Result<Self> {
         match source.len() < 21 {
             true => {
                 self.parameters.set(
