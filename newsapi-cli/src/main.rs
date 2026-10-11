@@ -1,18 +1,13 @@
-use newsapi_core::{Category, Country, NewsApiClient, NewsApiResponse};
-
-use dotenvy;
-use std::env;
+use newsapi_core::{NewsApiClient, NewsApiResponse, get_api_key};
 
 use colour::{blue_ln, dark_cyan_ln, dark_red_ln, green_ln_bold, yellow_ln};
 
 fn main() -> Result<(), newsapi_core::NewsApiError> {
-    let _ = dotenvy::dotenv();
+    let api_key = get_api_key("API_KEY");
 
-    let api_key = env::var("API_KEY").map_err(|e| newsapi_core::NewsApiError::APIKeyNotFound(e))?;
-
-    let client = NewsApiClient::top_headlines(api_key)
-        .country(Country::UnitedStates)
-        .category(Category::Entertainment);
+    let client = NewsApiClient::everything(api_key)
+        .from("2026-10-10")?
+        .q("protest in india")?;
     let response = client.fetch().unwrap();
 
     render_article(&response);

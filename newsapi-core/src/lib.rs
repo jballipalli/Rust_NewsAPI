@@ -13,6 +13,8 @@ pub use options::{Category, Country, Language, SearchIn, SortBy};
 
 pub use client::NewsApiClient;
 
+pub use parser::get_api_key;
+
 //#[cfg(test)]
 //mod tests {
 //
