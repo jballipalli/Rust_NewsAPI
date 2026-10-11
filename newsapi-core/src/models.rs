@@ -1,55 +1,81 @@
 use serde::Deserialize;
+use serde_with;
+use std::fmt;
 
+#[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
 pub struct NewsApiResponse {
     status: String,
 
-    articles: Vec<Article>,
-
     #[serde(rename = "totalResults")]
-    total_results: usize,
+    total_results: Option<usize>,
+
+    articles: Option<Vec<Article>>,
+
+    sources: Option<Vec<Source>>,
+}
+
+impl fmt::Display for NewsApiResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{:#?}", self)?;
+        Ok(())
+    }
 }
 
 impl NewsApiResponse {
-    pub fn status(&self) -> &str {
-        self.status.as_str()
+    pub fn get_status(&self) -> &str {
+        self.status.as_ref()
     }
 
-    pub fn get_articles(&self) -> &Vec<Article> {
-        &self.articles
+    pub fn get_total_result(&self) -> Option<&usize> {
+        self.total_results.as_ref()
     }
 
-    pub fn total_results(&self) -> usize {
-        self.total_results
+    pub fn get_articles(&self) -> Option<&Vec<Article>> {
+        self.articles.as_ref()
+    }
+
+    pub fn get_sources(&self) -> Option<&Vec<Source>> {
+        self.sources.as_ref()
     }
 }
 
+#[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
 pub struct Article {
-    title: String,
-
-    #[serde(rename = "publishedAt")]
-    published_at: String,
-
-    url: String,
+    source: Option<Source>,
 
     author: Option<String>,
+
+    title: Option<String>,
+
+    description: Option<String>,
+
+    url: Option<String>,
+
+    #[serde(rename = "urlToImage")]
+    url_to_image: Option<String>,
+
+    #[serde(rename = "publishedAt")]
+    published_at: Option<String>,
+
+    content: Option<String>,
 }
 
-impl Article {
-    pub fn title(&self) -> &str {
-        &self.title.as_str()
-    }
+#[serde_with::skip_serializing_none]
+#[derive(Debug, Deserialize)]
+pub struct Source {
+    id: Option<String>,
 
-    pub fn published_at(&self) -> &str {
-        &self.published_at.as_str()
-    }
+    name: Option<String>,
 
-    pub fn url(&self) -> &str {
-        &self.url.as_str()
-    }
+    description: Option<String>,
 
-    pub fn author(&self) -> Option<&str> {
-        self.author.as_deref()
-    }
+    url: Option<String>,
+
+    category: Option<String>,
+
+    language: Option<String>,
+
+    country: Option<String>,
 }
