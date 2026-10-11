@@ -83,10 +83,8 @@ where
     T: private::SupportCountry,
 {
     fn country(&mut self, country: Country) -> &mut Self {
-        self.get_parameters_mut().insert(
-            "country".to_string(),
-            options::COUNTRY_LOOKUP[country].to_string(),
-        );
+        self.get_parameters_mut()
+            .insert("country", country.as_str());
         self
     }
 }
@@ -127,12 +125,12 @@ where
         match source.len() < 21 {
             true => {
                 self.get_parameters_mut()
-                    .insert("sources".to_string(), source.join(","));
+                    .insert("sources", source.join(","));
                 Ok(self)
             }
             false => Err(NewsApiError::ParamError {
-                param: "sources".to_string(),
-                message: "cannot provide more than 20 source ids.".to_string(),
+                param: "sources",
+                message: "cannot provide more than 20 source ids.",
             }),
         }
     }
@@ -147,10 +145,8 @@ where
     T: private::SupportLanguage,
 {
     fn language(&mut self, language: Language) -> &mut Self {
-        self.get_parameters_mut().insert(
-            "language".to_string(),
-            options::LANGUAGE_LOOKUP[language].to_string(),
-        );
+        self.get_parameters_mut()
+            .insert("language", language.as);
         self
     }
 }
@@ -186,13 +182,12 @@ impl<State> CommonTrait for NewsApiClient<State> {
     fn page_size(&mut self, size: u8) -> Result<&mut Self, NewsApiError> {
         match (1..=100).contains(&size) {
             true => {
-                self.parameters
-                    .insert("pageSize".to_string(), size.to_string());
+                self.parameters.insert("pageSize", size);
                 Ok(self)
             }
             false => Err(NewsApiError::ParamError {
-                param: "pageSize".to_string(),
-                message: "range out of bound. size must be within 1 and 100".to_string(),
+                param: "pageSize",
+                message: "range out of bound. size must be within 1 and 100",
             }),
         }
     }
@@ -207,7 +202,7 @@ impl<State> CommonTrait for NewsApiClient<State> {
     /// included in the request as the `page` query parameter. Use this to page through the results if the total results found is greater than the page size.
     ///
     fn page(&mut self, page: usize) -> &mut Self {
-        self.parameters.insert("page".to_string(), page.to_string());
+        self.parameters.insert("page", page);
         self
     }
 
@@ -223,12 +218,12 @@ impl<State> CommonTrait for NewsApiClient<State> {
     fn q(&mut self, q: &str) -> Result<&mut Self, NewsApiError> {
         match q.len() < 501 {
             true => {
-                self.parameters.insert("q".to_string(), q.to_string());
+                self.parameters.insert("q", q);
                 Ok(self)
             }
             false => Err(NewsApiError::ParamError {
-                param: "q".to_string(),
-                message: "length exceeds 500 char limit".to_string(),
+                param: "q",
+                message: "length exceeds 500 char limit",
             }),
         }
     }
@@ -261,8 +256,8 @@ impl NewsApiClient<Everything> {
     pub fn search_in(&mut self, search_in: Vec<SearchIn>) -> Result<&mut Self, NewsApiError> {
         if search_in.is_empty() {
             return Err(NewsApiError::ParamError {
-                param: "searchIn".to_string(),
-                message: "provided empty vector".to_string(),
+                param: "searchIn",
+                message: "provided empty vector",
             });
         }
 
@@ -270,14 +265,14 @@ impl NewsApiClient<Everything> {
         for value in &search_in {
             if !seen.insert(*value) {
                 return Err(NewsApiError::ParamError {
-                    param: "searchIn".to_string(),
-                    message: "duplicate values are not allowed".to_string(),
+                    param: "searchIn",
+                    message: "duplicate values are not allowed",
                 });
             }
         }
 
         self.parameters.insert(
-            "searchIn".to_string(),
+            "searchIn",
             search_in
                 .iter()
                 .map(|s| s.as_str())
@@ -291,13 +286,12 @@ impl NewsApiClient<Everything> {
     pub fn domains(&mut self, domains: &str) -> Result<&mut Self, NewsApiError> {
         if domains.is_empty() {
             return Err(NewsApiError::ParamError {
-                param: "domain".to_string(),
-                message: "provided empty string".to_string(),
+                param: "domain",
+                message: "provided empty string",
             });
         }
 
-        self.parameters
-            .insert("domains".to_string(), domains.to_owned());
+        self.parameters.insert("domains", domains.to_owned());
 
         Ok(self)
     }
@@ -305,13 +299,12 @@ impl NewsApiClient<Everything> {
     pub fn exclude_domains(&mut self, domains: &str) -> Result<&mut Self, NewsApiError> {
         if domains.is_empty() {
             return Err(NewsApiError::ParamError {
-                param: "excludeDomains".to_string(),
-                message: "provided empty string".to_string(),
+                param: "excludeDomains",
+                message: "provided empty string",
             });
         }
 
-        self.parameters
-            .insert("excludeDomains".to_string(), domains.to_owned());
+        self.parameters.insert("excludeDomains", domains.to_owned());
 
         Ok(self)
     }

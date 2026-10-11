@@ -1,25 +1,4 @@
-use enum_map::{Enum, EnumMap, enum_map};
 use serde::{self, Deserialize, Serialize};
-use std::sync::LazyLock;
-
-pub static LANGUAGE_LOOKUP: LazyLock<EnumMap<Language, &'static str>> = LazyLock::new(|| {
-    enum_map! {
-        Language::Arabic => "ar",
-        Language::German => "de",
-        Language::English => "en",
-        Language::Spanish => "es",
-        Language::French => "fr",
-        Language::Hebrew => "he",
-        Language::Italian => "it",
-        Language::Dutch => "nl",
-        Language::Norwegian => "no",
-        Language::Portuguese => "pt",
-        Language::Russian => "ru",
-        Language::Swedish => "sv",
-        Language::Urdu => "ud",
-        Language::Chinese => "zh",
-    }
-});
 
 #[derive(Debug, Serialize, Deserialize, Eq, Hash, Copy, PartialEq, Clone)]
 pub enum SearchIn {
@@ -52,7 +31,7 @@ pub enum SortBy {
 }
 
 impl SortBy {
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             SortBy::PublishedAt => "publishedAt",
             SortBy::Popularity => "popularity",
@@ -61,7 +40,7 @@ impl SortBy {
     }
 }
 
-#[derive(Debug, Enum)]
+#[derive(Debug)]
 pub enum Language {
     Arabic,
     German,
@@ -79,7 +58,28 @@ pub enum Language {
     Chinese,
 }
 
-#[derive(Debug, Enum)]
+impl Language {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Language::Arabic => "ar",
+            Language::German => "de",
+            Language::English => "en",
+            Language::Spanish => "es",
+            Language::French => "fr",
+            Language::Hebrew => "he",
+            Language::Italian => "it",
+            Language::Dutch => "nl",
+            Language::Norwegian => "no",
+            Language::Portuguese => "pt",
+            Language::Russian => "ru",
+            Language::Swedish => "sv",
+            Language::Urdu => "ud",
+            Language::Chinese => "zh",
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum Country {
     Argentina,
     Australia,
