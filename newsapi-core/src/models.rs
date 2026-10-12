@@ -1,8 +1,6 @@
 use serde::Deserialize;
-use serde_with;
 use std::fmt;
 
-#[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
 pub struct NewsApiResponse {
     pub status: String,
@@ -42,7 +40,6 @@ pub struct Article {
     pub content: Option<String>,
 }
 
-#[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
 pub struct Source {
     pub id: Option<String>,
