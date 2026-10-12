@@ -5,14 +5,14 @@ use std::fmt;
 #[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
 pub struct NewsApiResponse {
-    status: String,
+    pub status: String,
 
     #[serde(rename = "totalResults")]
-    total_results: Option<usize>,
+    pub total_results: Option<usize>,
 
-    articles: Option<Vec<Article>>,
+    pub articles: Option<Vec<Article>>,
 
-    sources: Option<Vec<Source>>,
+    pub sources: Option<Vec<Source>>,
 }
 
 impl fmt::Display for NewsApiResponse {
@@ -22,60 +22,49 @@ impl fmt::Display for NewsApiResponse {
     }
 }
 
-impl NewsApiResponse {
-    pub fn get_status(&self) -> &str {
-        self.status.as_ref()
-    }
-
-    pub fn get_total_result(&self) -> Option<&usize> {
-        self.total_results.as_ref()
-    }
-
-    pub fn get_articles(&self) -> Option<&Vec<Article>> {
-        self.articles.as_ref()
-    }
-
-    pub fn get_sources(&self) -> Option<&Vec<Source>> {
-        self.sources.as_ref()
-    }
-}
-
-#[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Article {
-    source: Option<Source>,
+    pub source: Option<Source>,
 
-    author: Option<String>,
+    pub author: Option<String>,
 
-    title: Option<String>,
+    pub title: Option<String>,
 
-    description: Option<String>,
+    pub description: Option<String>,
 
-    url: Option<String>,
+    pub url: Option<String>,
 
-    #[serde(rename = "urlToImage")]
-    url_to_image: Option<String>,
+    pub url_to_image: Option<String>,
 
-    #[serde(rename = "publishedAt")]
-    published_at: Option<String>,
+    pub published_at: Option<String>,
 
-    content: Option<String>,
+    pub content: Option<String>,
 }
 
 #[serde_with::skip_serializing_none]
 #[derive(Debug, Deserialize)]
 pub struct Source {
-    id: Option<String>,
+    pub id: Option<String>,
 
-    name: Option<String>,
+    pub name: Option<String>,
 
-    description: Option<String>,
+    pub description: Option<String>,
 
-    url: Option<String>,
+    pub url: Option<String>,
 
-    category: Option<String>,
+    pub category: Option<String>,
 
-    language: Option<String>,
+    pub language: Option<String>,
 
-    country: Option<String>,
+    pub country: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct ResponseError {
+    pub id: String,
+
+    pub code: String,
+
+    pub message: String,
 }
